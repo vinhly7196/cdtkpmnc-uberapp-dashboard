@@ -1,3 +1,7 @@
 streamlit
 pandas
-plost
+matplotlib.pyplot
+seaborn
+unicodedata
+plotly.express
+numpy
