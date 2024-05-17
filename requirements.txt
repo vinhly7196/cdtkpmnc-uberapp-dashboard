@@ -1,6 +1,6 @@
 streamlit
 pandas
-matplotlib.pyplot
+matplotlib==3.4.1
 seaborn
 unicodedata
 plotly.express
