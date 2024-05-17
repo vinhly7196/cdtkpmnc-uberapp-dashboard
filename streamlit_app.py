@@ -112,8 +112,8 @@ if not df.empty:
     distance_sum = df['distance'].sum()
     id_count = df['id'].count()
 col1.metric("Revenue", f"{price_sum:,.0f} ₫")
-col2.metric("Distance", f"{distance_sum:,.0f} km", "-8%")
-col3.metric("Trip", id_count, "4%")
+col2.metric("Distance", f"{distance_sum:,.0f} km")
+col3.metric("Trip", id_count)
 
 
 if not df.empty:
