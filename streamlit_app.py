@@ -26,6 +26,7 @@ jsondict = json.dumps(response)
 df =  pd.read_json(jsondict, orient='records')
 
 # add new columns 
+
 df['city'] = df.apply(lambda row: row.pickup['address'].split(',')[3], axis=1)
 df['district'] = df.apply(lambda row: row.pickup['address'].split(',')[2], axis=1)
 df['request_date'] = df['request_time'].dt.date
@@ -42,7 +43,7 @@ vehicles = veh_df["name"].drop_duplicates().tolist()
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
-with open('style.css') as f:
+with open('css/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     
 st.sidebar.header('Dashboard')
