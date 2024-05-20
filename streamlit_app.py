@@ -20,7 +20,7 @@ def xoa_dau(txt: str) -> str:
     return txt.translate(BANG_XOA_DAU)
 
 # get api trip
-# res = requests.get('http://209.38.168.38/trip/get?skip=0&limit=0')
+res = requests.get('http://209.38.168.38/trip/get?skip=0&limit=0')
 response = json.loads(res.text)
 jsondict = json.dumps(response)
 df =  pd.read_json(jsondict, orient='records')
