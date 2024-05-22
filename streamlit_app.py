@@ -143,9 +143,9 @@ if not df.empty:
     # filter by months 
     if len(MONTHS_SELECTED) != 0:
         sns.barplot(data=df, x='request_date', y='price').set(ylabel='Revenue', xlabel='Request Date')
-        # xticks = ax.get_xticks()
-        # xticklabels = [x.get_text() for x in ax.get_xticklabels()]
-        # _ = ax.set_xticks(xticks, xticklabels, rotation=90)
+        xticks = ax.get_xticks()
+        xticklabels = [x.get_text() for x in ax.get_xticklabels()]
+        _ = ax.set_xticks(xticks, xticklabels, rotation=90)
     else:
         sns.barplot(data=df, x='request_month', y='price').set(ylabel='Revenue', xlabel='Request Month')
 
