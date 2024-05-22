@@ -145,7 +145,7 @@ if not df.empty:
         sns.barplot(data=df, x='request_date', y='price').set(ylabel='Revenue', xlabel='Request Date')
         xticks = ax.get_xticks()
         xticklabels = [x.get_text() for x in ax.get_xticklabels()]
-        _ = ax.set_xticks(xticks, xticklabels, rotation=90)
+        _ = ax.set_xticks(xticks, xticklabels, rotation=45)
     else:
         sns.barplot(data=df, x='request_month', y='price').set(ylabel='Revenue', xlabel='Request Month')
 
