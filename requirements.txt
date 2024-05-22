@@ -1,6 +1,6 @@
 streamlit
 pandas
-matplotlib==3.4.1
+matplotlib==3.4.3
 seaborn
 plotly.express
 numpy
