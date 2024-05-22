@@ -89,7 +89,7 @@ if len(CITY_SELECTED) != 0:
                 rows_list.append(row)
     df = pd.DataFrame(rows_list)               
 
-df = df.sort_values(by='request_date', ascending=True)
+
 
 # Row A
 st.markdown('### Metrics')
@@ -111,6 +111,8 @@ col3.metric("Trip Done", id_done_count, f"{id_done_rate}%")
 
 
 if not df.empty:
+    df = df.sort_values(by='request_date', ascending=True)
+
     c1, c2 = st.columns((5,5))
     with c1:
         st.markdown('### Donut Chart')
