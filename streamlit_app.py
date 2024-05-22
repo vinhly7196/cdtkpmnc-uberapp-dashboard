@@ -5,39 +5,28 @@ import json
 import matplotlib.pyplot as plt
 from citys import citys_list
 import seaborn as sns
-import unicodedata
 import plotly.express as px
 import numpy as np
+import controller
 
-BANG_XOA_DAU = str.maketrans(
-    "ÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÈÉẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴáàảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵ",
-    "A"*17 + "D" + "E"*11 + "I"*5 + "O"*17 + "U"*11 + "Y"*5 + "a"*17 + "d" + "e"*11 + "i"*5 + "o"*17 + "u"*11 + "y"*5
-)
-
-def xoa_dau(txt: str) -> str:
-    if not unicodedata.is_normalized("NFC", txt):
-        txt = unicodedata.normalize("NFC", txt)
-    return txt.translate(BANG_XOA_DAU)
+GET_ALL_TRIP_API = 'http://209.38.168.38/trip/get?skip=0&limit=0'
+GET_VEHICLE_TYPE_API = 'http://209.38.168.38/vehicle/vehicle-types'
 
 # get api trip
-res = requests.get('http://209.38.168.38/trip/get?skip=0&limit=0')
-response = json.loads(res.text)
-jsondict = json.dumps(response)
-df =  pd.read_json(jsondict, orient='records')
+df = controller.get_data(GET_ALL_TRIP_API)
 
 # add new columns 
 
 df['city'] = df.apply(lambda row: row.pickup['address'].split(',')[3], axis=1)
 df['district'] = df.apply(lambda row: row.pickup['address'].split(',')[2], axis=1)
 df['request_date'] = df['request_time'].dt.date
+df['request_year'] = df['request_time'].dt.year
+df['request_month'] = df['request_time'].dt.month
 df['pickup_lat'] = df.apply(lambda row: row.pickup['coordinate'][1], axis=1)
 df['pickup_lng'] = df.apply(lambda row: row.pickup['coordinate'][0], axis=1)
 
 # get api vehicle type
-vehicles_res = requests.get('http://209.38.168.38/vehicle/vehicle-types')
-veh_response = json.loads(vehicles_res.text)
-veh_jsondict = json.dumps(veh_response)
-veh_df =  pd.read_json(veh_jsondict, orient='records')
+veh_df = controller.get_data(GET_VEHICLE_TYPE_API)
 vehicles = veh_df["name"].drop_duplicates().tolist()
 
 
@@ -96,11 +85,11 @@ rows_list = []
 if len(CITY_SELECTED) != 0:
     for city in CITY_SELECTED:
         for index, row in df.iterrows():
-            if city in (row['city']) or xoa_dau(city) in (row['city']):
+            if city in (row['city']) or controller.xoa_dau(city) in (row['city']):
                 rows_list.append(row)
     df = pd.DataFrame(rows_list)               
 
-
+df = df.sort_values(by='request_date', ascending=True)
 
 # Row A
 st.markdown('### Metrics')
@@ -108,13 +97,17 @@ col1, col2, col3 = st.columns(3)
 price_sum = 0
 distance_sum = 0
 id_count = 0
+id_done_count = 0
+id_done_rate = 0
 if not df.empty:
     price_sum = df['price'].sum()
     distance_sum = df['distance'].sum()
+    id_done_count = df[df['status'] == "Done"]['id'].count()
     id_count = df['id'].count()
+    id_done_rate = id_done_count * 100 / id_count
 col1.metric("Revenue", f"{price_sum:,.0f} ₫")
 col2.metric("Distance", f"{distance_sum:,.0f} km")
-col3.metric("Trip", id_count)
+col3.metric("Trip Done", id_done_count, f"{id_done_rate}%")
 
 
 if not df.empty:
@@ -143,9 +136,18 @@ if not df.empty:
     # Row C
     st.markdown('### Line chart')
     # Create a Seaborn pairplot
-    fig = plt.figure(figsize=(10, 4))
+    # fig, ax = plt.figure(figsize=(10, 4))
+    fig, ax = plt.subplots(1,1)
     # sns.lineplot(data=df, x='request_date', y='price', hue='district')
-    sns.barplot(data=df, x='request_date', y='price').set(ylabel='Revenue', xlabel='Request Date')
+
+    # filter by months 
+    if len(MONTHS_SELECTED) != 0:
+        sns.barplot(data=df, x='request_date', y='price').set(ylabel='Revenue', xlabel='Request Date')
+        xticks = ax.get_xticks()
+        xticklabels = [x.get_text() for x in ax.get_xticklabels()]
+        _ = ax.set_xticks(xticks, xticklabels, rotation=90)
+    else:
+        sns.barplot(data=df, x='request_month', y='price').set(ylabel='Revenue', xlabel='Request Month')
 
     
     # Display the plot in Streamlit
