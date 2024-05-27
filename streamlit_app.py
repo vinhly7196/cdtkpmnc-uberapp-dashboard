@@ -100,8 +100,8 @@ id_count = 0
 id_done_count = 0
 id_done_rate = 0
 if not df.empty:
-    price_sum = df['price'].sum()
-    distance_sum = df['distance'].sum()
+    price_sum = df[df['status'] == "Done"]['price'].sum()
+    distance_sum = df[df['status'] == "Done"]['distance'].sum()
     id_done_count = df[df['status'] == "Done"]['id'].count()
     id_count = df['id'].count()
     id_done_rate = id_done_count * 100 / id_count
