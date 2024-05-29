@@ -22,6 +22,7 @@ df['district'] = df.apply(lambda row: row.pickup['address'].split(',')[2], axis=
 df['request_date'] = df['request_time'].dt.date
 df['request_year'] = df['request_time'].dt.year
 df['request_month'] = df['request_time'].dt.month
+df['vehicle_type'] = df.apply(lambda row: row.vehicle_type['name'], axis=1)
 df['pickup_lat'] = df.apply(lambda row: row.pickup['coordinate'][1], axis=1)
 df['pickup_lng'] = df.apply(lambda row: row.pickup['coordinate'][0], axis=1)
 
@@ -71,6 +72,8 @@ DO AN CHUYEN DE THIET KE PHAN MEM NANG CAO.
 ''')
 
 # filter dataframe
+df = df.loc[df["status"] == "Done"]
+
 if len(SOURCES_SELECTED) != 0:
     df = df.loc[df["request_from"].isin(SOURCES_SELECTED)]
 
@@ -100,14 +103,14 @@ id_count = 0
 id_done_count = 0
 id_done_rate = 0
 if not df.empty:
-    price_sum = df['price'].sum()
-    distance_sum = df['distance'].sum()
+    price_sum =     df[df['status'] == "Done"]['price'].sum()
+    distance_sum =  df[df['status'] == "Done"]['distance'].sum()
     id_done_count = df[df['status'] == "Done"]['id'].count()
     id_count = df['id'].count()
     id_done_rate = id_done_count * 100 / id_count
 col1.metric("Revenue", f"{price_sum:,.0f} ₫")
 col2.metric("Distance", f"{distance_sum:,.0f} km")
-col3.metric("Trip Done", id_done_count, f"{id_done_rate}%")
+col3.metric("Trip Done", id_done_count, f"{id_done_rate:,.0f}%")
 
 
 if not df.empty:
@@ -115,7 +118,7 @@ if not df.empty:
 
     c1, c2 = st.columns((5,5))
     with c1:
-        st.markdown('### Donut Chart')
+        st.markdown('### Pie Chart')
         df_payment = df.groupby(['payment_method']).agg({'id': 'count'}).reset_index()
         figp, axp = plt.subplots()
         axp.pie(df_payment['id'],labels=df_payment["payment_method"],
@@ -124,7 +127,6 @@ if not df.empty:
         st.pyplot(figp)
     
     with c2:
-        st.markdown('### Pie chart')
         df_request = df.groupby(['request_from']).agg({'price': 'sum'}).reset_index()
         fig1, ax1 = plt.subplots()
         ax1.pie(df_request['price'], autopct='%1.1f%%',labels=df_request["request_from"],
@@ -133,8 +135,6 @@ if not df.empty:
         st.pyplot(fig1)
 
     
-
-
     # Row C
     st.markdown('### Line chart')
     # Create a Seaborn pairplot
@@ -151,7 +151,6 @@ if not df.empty:
     else:
         sns.barplot(data=df, x='request_month', y='price').set(ylabel='Revenue', xlabel='Request Month')
 
-    
     # Display the plot in Streamlit
     st.pyplot(fig)
 
@@ -159,7 +158,8 @@ if not df.empty:
     # row D
     st.markdown('### Bar chart')
     fig1 = plt.figure(figsize=(10, 4))
-    sns.countplot(x="vehicle_type", data=df, hue='request_type').set(ylabel='Book', xlabel='Vehicle Type')
+    # sns.countplot(x="vehicle_type", data=df).set(ylabel='Book', xlabel='Vehicle Type')
+    sns.barplot(data=df, x='vehicle_type', y='price').set(ylabel='Revenue', xlabel='Vehicle Type')
     st.pyplot(fig1)
 
     # row E
