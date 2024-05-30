@@ -88,6 +88,9 @@ CITY_SELECTED = st.sidebar.multiselect('Select City', cities)
 st.sidebar.subheader('Driver')
 DRIVER_SELECTED = st.sidebar.text_input('Driver ID') 
 
+st.sidebar.subheader('Customer')
+CUSTOMER_SELECTED = st.sidebar.text_input('Customer ID') 
+
 # filter dataframe
 df = df.loc[df["status"] == "Done"]
 
@@ -128,6 +131,9 @@ if len(CITY_SELECTED) != 0:
 if DRIVER_SELECTED != "":
     df = df.loc[df["driver_id"] == DRIVER_SELECTED]
 
+if CUSTOMER_SELECTED != "":
+    df = df.loc[df["customer_id"] == CUSTOMER_SELECTED]
+
 
 # CREATE DOWNLOAD REPORT
 df_months = pd.DataFrame()
@@ -155,10 +161,6 @@ st.sidebar.markdown('''
 ---
 DO AN CHUYEN DE THIET KE PHAN MEM NANG CAO.
 ''')
-
-
-
-
 
 
 # Row A
