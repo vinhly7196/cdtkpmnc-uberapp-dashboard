@@ -65,7 +65,7 @@ min = datetime.date(today.year, 1, 1)
 max = datetime.date(next_year + 10, 12, 31)
 
 d = st.sidebar.date_input(
-    "Select your vacation for next year",
+    "Select your Date Range",
     (begin, end),
     min,
     max,
