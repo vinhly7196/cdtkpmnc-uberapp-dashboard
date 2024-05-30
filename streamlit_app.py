@@ -8,6 +8,9 @@ import seaborn as sns
 import plotly.express as px
 import numpy as np
 import controller
+import datetime
+from matplotlib.ticker import NullFormatter
+import matplotlib.ticker as ticker
 
 GET_ALL_TRIP_API = 'http://209.38.168.38/trip/get?skip=0&limit=0'
 GET_VEHICLE_TYPE_API = 'http://209.38.168.38/vehicle/vehicle-types'
@@ -22,9 +25,11 @@ df['district'] = df.apply(lambda row: row.pickup['address'].split(',')[2], axis=
 df['request_date'] = df['request_time'].dt.date
 df['request_year'] = df['request_time'].dt.year
 df['request_month'] = df['request_time'].dt.month
+df['dates'] = df['request_time'].dt.strftime('%Y-%m')
 df['vehicle_type'] = df.apply(lambda row: row.vehicle_type['name'], axis=1)
 df['pickup_lat'] = df.apply(lambda row: row.pickup['coordinate'][1], axis=1)
 df['pickup_lng'] = df.apply(lambda row: row.pickup['coordinate'][0], axis=1)
+df['driver_id'] = df.apply(lambda row: row.driver['id'], axis=1)
 
 # get api vehicle type
 veh_df = controller.get_data(GET_VEHICLE_TYPE_API)
@@ -46,11 +51,22 @@ SOURCES_SELECTED = st.sidebar.multiselect('BOOK BY', sources)
 
 # filter by year and month
 st.sidebar.subheader('Date')
-years = df['request_time'].dt.year.drop_duplicates().tolist()
-months = df['request_time'].dt.month.drop_duplicates().tolist()
 
-YEAR_SELECTED = st.sidebar.selectbox('Select Year', years)
-MONTHS_SELECTED = st.sidebar.multiselect('Select Months', months)
+
+today = datetime.datetime.now()
+next_year = today.year + 1
+begin = datetime.date(today.year, 1, 1)
+end = datetime.date(today.year, 12, 31)
+min = datetime.date(today.year, 1, 1)
+max = datetime.date(next_year + 10, 12, 31)
+
+d = st.sidebar.date_input(
+    "Select your vacation for next year",
+    (begin, end),
+    min,
+    max,
+    format="DD.MM.YYYY",
+)
 
 # filter by vehicle type
 st.sidebar.subheader('Vehicle Type')
@@ -71,15 +87,26 @@ st.sidebar.markdown('''
 DO AN CHUYEN DE THIET KE PHAN MEM NANG CAO.
 ''')
 
+
+
 # filter dataframe
 df = df.loc[df["status"] == "Done"]
 
 if len(SOURCES_SELECTED) != 0:
     df = df.loc[df["request_from"].isin(SOURCES_SELECTED)]
 
-df = df.loc[df["request_time"].dt.year == YEAR_SELECTED]
-if len(MONTHS_SELECTED) != 0:
-    df = df.loc[df["request_time"].dt.month.isin(MONTHS_SELECTED)]
+
+MONTHS_SELECTED = False
+if d != None:
+    date_start = d[0]
+    date_end = date_start
+    if len(d) == 2: 
+        date_end = d[1]
+    df = df.loc[(df["request_date"] >= date_start) & (df["request_date"] <= date_end)]
+
+    if date_start.month == date_end.month and date_start.year == date_end.year:
+        MONTHS_SELECTED = True
+
 
 if len(VEHICLE_TYPE_SELECTED) != 0:
     df = df.loc[df["vehicle_type"].isin(VEHICLE_TYPE_SELECTED)]
@@ -93,7 +120,6 @@ if len(CITY_SELECTED) != 0:
     df = pd.DataFrame(rows_list)               
 
 
-
 # Row A
 st.markdown('### Metrics')
 col1, col2, col3 = st.columns(3)
@@ -103,9 +129,9 @@ id_count = 0
 id_done_count = 0
 id_done_rate = 0
 if not df.empty:
-    price_sum =     df[df['status'] == "Done"]['price'].sum()
-    distance_sum =  df[df['status'] == "Done"]['distance'].sum()
-    id_done_count = df[df['status'] == "Done"]['id'].count()
+    price_sum =     df['price'].sum()
+    distance_sum =  df['distance'].sum()
+    id_done_count = df['id'].count()
     id_count = df['id'].count()
     id_done_rate = id_done_count * 100 / id_count
 col1.metric("Revenue", f"{price_sum:,.0f} ₫")
@@ -136,33 +162,48 @@ if not df.empty:
 
     
     # Row C
-    st.markdown('### Line chart')
+    st.markdown('### Revenue By Date Chart')
     # Create a Seaborn pairplot
     # fig, ax = plt.figure(figsize=(10, 4))
     fig, ax = plt.subplots(1,1)
     # sns.lineplot(data=df, x='request_date', y='price', hue='district')
 
     # filter by months 
-    if len(MONTHS_SELECTED) != 0:
-        sns.barplot(data=df, x='request_date', y='price').set(ylabel='Revenue', xlabel='Request Date')
+    if MONTHS_SELECTED:
+        fig, ax = plt.subplots(figsize=(8, 5)) 
+        g = sns.barplot(data=df, x='request_date', y='price', estimator=sum, ci=None).set(ylabel='Revenue', xlabel='Request Date')
         xticks = ax.get_xticks()
         xticklabels = [x.get_text() for x in ax.get_xticklabels()]
         _ = ax.set_xticks(xticks, xticklabels, rotation=45)
+        ax.yaxis.set_major_formatter(controller.formatter)
+        ax.yaxis.set_minor_formatter(NullFormatter())
+        ax.set_ylabel("triệu đồng")
+
+
     else:
-        sns.barplot(data=df, x='request_month', y='price').set(ylabel='Revenue', xlabel='Request Month')
+        sns.set_theme(style="darkgrid")    
+        fig, ax = plt.subplots(figsize=(8, 5))    
+        g = sns.barplot(data=df, x='dates', y='price', estimator=sum, ci=None).set(ylabel='Revenue', xlabel='Request Month')
+
+        ax.yaxis.set_major_formatter(controller.formatter)
+        ax.yaxis.set_minor_formatter(NullFormatter())
+        ax.set_ylabel("triệu đồng")
 
     # Display the plot in Streamlit
     st.pyplot(fig)
 
 
     # row D
-    st.markdown('### Bar chart')
-    fig1 = plt.figure(figsize=(10, 4))
-    # sns.countplot(x="vehicle_type", data=df).set(ylabel='Book', xlabel='Vehicle Type')
-    sns.barplot(data=df, x='vehicle_type', y='price').set(ylabel='Revenue', xlabel='Vehicle Type')
+    st.markdown('### Revenue By Car Type Chart ')
+    fig1, ax1 = plt.subplots(figsize=(8, 5)) 
+    g1 = sns.barplot(data=df, x='vehicle_type', y='price', estimator=sum, ci=None).set(ylabel='Revenue', xlabel='Vehicle Type')
+    ax1.yaxis.set_major_formatter(controller.formatter)
+    ax1.yaxis.set_minor_formatter(NullFormatter())
+    ax1.set_ylabel("triệu đồng")
     st.pyplot(fig1)
 
     # row E
+    st.markdown('### Pickup Positions')
     midpoint = (np.average(df['pickup_lat']), np.average(df['pickup_lng']))
     print(midpoint)
     fig2 = px.scatter_mapbox(df, 

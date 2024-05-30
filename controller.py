@@ -22,3 +22,6 @@ def get_data(api_link):
     jsondict = json.dumps(response)
     df =  pd.read_json(jsondict, orient='records')
     return df 
+
+def formatter(x, pos):
+    return str(round(x / 1e6, 1))
