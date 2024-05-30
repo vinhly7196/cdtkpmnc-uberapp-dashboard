@@ -2,6 +2,7 @@ import unicodedata
 import requests
 import json 
 import pandas as pd
+import streamlit as st
 
 
 BANG_XOA_DAU = str.maketrans(
@@ -25,3 +26,8 @@ def get_data(api_link):
 
 def formatter(x, pos):
     return str(round(x / 1e6, 1))
+
+@st.cache_data
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8-sig')
