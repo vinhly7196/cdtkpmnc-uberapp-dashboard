@@ -30,6 +30,10 @@ df['vehicle_type'] = df.apply(lambda row: row.vehicle_type['name'], axis=1)
 df['pickup_lat'] = df.apply(lambda row: row.pickup['coordinate'][1], axis=1)
 df['pickup_lng'] = df.apply(lambda row: row.pickup['coordinate'][0], axis=1)
 
+df['customer_id'] = df.apply(lambda row: row.customer['id'], axis=1)
+df['customer_name'] = df.apply(lambda row: row.customer['name'], axis=1)
+df['customer_phone'] = df.apply(lambda row: row.customer['phone'], axis=1)
+df = df.drop(['customer'], axis=1)
 
 # get api vehicle type
 veh_df = controller.get_data(GET_VEHICLE_TYPE_API)
@@ -84,28 +88,15 @@ CITY_SELECTED = st.sidebar.multiselect('Select City', cities)
 st.sidebar.subheader('Driver')
 DRIVER_SELECTED = st.sidebar.text_input('Driver ID') 
 
-
-csv = controller.convert_df(df)
-
-st.sidebar.download_button(
-    label="Download data as CSV",
-    data=csv,
-    file_name="large_df.csv",
-    mime="text/csv",
-)
-
-st.sidebar.markdown('''
----
-DO AN CHUYEN DE THIET KE PHAN MEM NANG CAO.
-''')
-
-
-
 # filter dataframe
 df = df.loc[df["status"] == "Done"]
 
 # add column driver ID
 df['driver_id'] = df.apply(lambda row: row.driver['id'], axis=1)
+df['driver_name'] = df.apply(lambda row: row.driver['name'], axis=1)
+df['driver_phone'] = df.apply(lambda row: row.driver['phone'], axis=1)
+df = df.drop(['driver'], axis=1)
+
 
 if len(SOURCES_SELECTED) != 0:
     df = df.loc[df["request_from"].isin(SOURCES_SELECTED)]
@@ -135,7 +126,27 @@ if len(CITY_SELECTED) != 0:
     df = pd.DataFrame(rows_list)               
 
 if DRIVER_SELECTED != "":
-    df = df[df['driver'].map(lambda x: x['id'] == DRIVER_SELECTED)]
+    df = df.loc[df["driver_id"] == DRIVER_SELECTED]
+
+
+csv = controller.convert_df(df)
+
+st.sidebar.download_button(
+    label="Download data as CSV",
+    data=csv,
+    file_name="large_df.csv",
+    mime="text/csv",
+)
+
+st.sidebar.markdown('''
+---
+DO AN CHUYEN DE THIET KE PHAN MEM NANG CAO.
+''')
+
+
+
+
+
 
 # Row A
 st.markdown('### Metrics')
@@ -198,7 +209,6 @@ if not df.empty:
 
 
     else:
-        sns.set_theme(style="darkgrid")    
         fig, ax = plt.subplots(figsize=(8, 5))    
         g = sns.barplot(data=df, x='dates', y='price', estimator=sum, ci=None).set(ylabel='Revenue', xlabel='Request Month')
 
