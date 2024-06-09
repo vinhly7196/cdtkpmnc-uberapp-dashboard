@@ -134,10 +134,11 @@ if CUSTOMER_SELECTED != "":
 
 
 # CREATE DOWNLOAD REPORT
-df_months = pd.DataFrame()
-df_months = df.groupby(['request_year', 'request_month']).agg({'price': 'sum'})
-df_months = df_months.rename(columns= {'price':'Revenue'})
-csv = controller.convert_df(df)
+if not df.empty:
+    df_months = pd.DataFrame()
+    df_months = df.groupby(['request_year', 'request_month']).agg({'price': 'sum'})
+    df_months = df_months.rename(columns= {'price':'Revenue'})
+    csv = controller.convert_df(df)
 
 st.sidebar.download_button(
     label="Download report line item",
