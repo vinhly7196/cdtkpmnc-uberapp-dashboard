@@ -24,7 +24,7 @@ citys_list = [
         "population": "7,216,000"
     },
     {
-        "city": "Hồ Chí Minh",
+        "city": "Thành phố Hồ Chí Minh",
         "province": "Hồ Chí Minh",
         "area": "2,095.5",
         "population": "8,146,300"

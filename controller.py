@@ -3,6 +3,7 @@ import requests
 import json 
 import pandas as pd
 import streamlit as st
+from citys import citys_list
 
 
 BANG_XOA_DAU = str.maketrans(
@@ -31,3 +32,11 @@ def formatter(x, pos):
 def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
     return df.to_csv().encode('utf-8-sig')
+
+
+def add_city_col(row):
+    address = [x.strip() for x in row.pickup['address'].split(',')]
+    for item in citys_list:
+        if item["city"] in address:
+            return item["city"]
+    return "_"

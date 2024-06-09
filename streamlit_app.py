@@ -19,10 +19,7 @@ GET_VEHICLE_TYPE_API = 'http://209.38.168.38/vehicle/vehicle-types'
 df = controller.get_data(GET_ALL_TRIP_API)
 
 # add new columns 
-
-df['city'] = df.apply(lambda row: row.pickup['address'].split(',')[-2], axis=1)
-# df['city'] = df.apply(lambda row: print(row.pickup['address']), axis=1)
-df['district'] = df.apply(lambda row: row.pickup['address'].split(',')[2], axis=1)
+df['city'] = df.apply(controller.add_city_col, axis=1)
 df['request_date'] = df['request_time'].dt.date
 df['request_year'] = df['request_time'].dt.year
 df['request_month'] = df['request_time'].dt.month
@@ -237,9 +234,9 @@ if not df.empty:
 
 
     # row D
-    st.markdown('### Revenue By Car Type Chart ')
+    st.markdown('### Revenue By City ')
     fig1, ax1 = plt.subplots(figsize=(8, 5)) 
-    g1 = sns.barplot(data=df, x='city', y='price', estimator=sum, ci=None).set(ylabel='Revenue', xlabel='Vehicle Type')
+    g1 = sns.barplot(data=df, x='city', y='price', estimator=sum, ci=None).set(ylabel='Revenue', xlabel='City')
     ax1.yaxis.set_major_formatter(controller.formatter)
     ax1.yaxis.set_minor_formatter(NullFormatter())
     ax1.set_ylabel("triệu đồng")
