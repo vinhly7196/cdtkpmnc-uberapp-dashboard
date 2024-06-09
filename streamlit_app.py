@@ -147,14 +147,14 @@ if not df.empty:
         mime="text/csv",
     )
 
-csv_months = controller.convert_df(df_months)
+    csv_months = controller.convert_df(df_months)
 
-st.sidebar.download_button(
-    label="Download report by months",
-    data=csv_months,
-    file_name="monthly_report.csv",
-    mime="text/csv",
-)
+    st.sidebar.download_button(
+        label="Download report by months",
+        data=csv_months,
+        file_name="monthly_report.csv",
+        mime="text/csv",
+    )
 
 st.sidebar.markdown('''
 ---
