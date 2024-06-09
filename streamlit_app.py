@@ -140,12 +140,12 @@ if not df.empty:
     df_months = df_months.rename(columns= {'price':'Revenue'})
     csv = controller.convert_df(df)
 
-st.sidebar.download_button(
-    label="Download report line item",
-    data=csv,
-    file_name="report.csv",
-    mime="text/csv",
-)
+    st.sidebar.download_button(
+        label="Download report line item",
+        data=csv,
+        file_name="report.csv",
+        mime="text/csv",
+    )
 
 csv_months = controller.convert_df(df_months)
 
