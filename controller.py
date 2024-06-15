@@ -35,8 +35,9 @@ def convert_df(df):
 
 
 def add_city_col(row):
-    address = [x.strip() for x in row.pickup['address'].split(',')]
+    address = [xoa_dau(x.strip()) for x in row.pickup['address'].split(',')]
+    print(address)
     for item in citys_list:
-        if item["city"] in address:
+        if xoa_dau(item["city"]) in address:
             return item["city"]
     return "_"
